@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo del Sistema - Flujo Completo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1f2937;
+            --secondary: #4338ca;
+            --accent: #059669;
+        }
+        .status-badge {
+            @apply px-3 py-1 rounded-full text-sm font-medium;
+        }
+        .status-new { @apply bg-blue-100 text-blue-800; }
+        .status-prep { @apply bg-orange-100 text-orange-800; }
+        .status-ready { @apply bg-green-100 text-green-800; }
+        .status-served { @apply bg-gray-100 text-gray-800; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto p-6">
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">
+                <i class="fas fa-utensils text-red-600 mr-3"></i>
+                Demo del Sistema de Gestión de Restaurante
+            </h1>
+            <p class="text-gray-600 mb-6">Demostración completa del flujo de trabajo desde la toma de órdenes hasta el pago</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <button id="demo-waiter" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-lg">
+                    <i class="fas fa-user-tie text-2xl mb-2"></i>
+                    <div class="font-medium">Mesero</div>
+                    <div class="text-sm opacity-75">Tomar órdenes</div>
+                </button>
+                <button id="demo-kitchen" class="bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-lg">
+                    <i class="fas fa-fire text-2xl mb-2"></i>
+                    <div class="font-medium">Cocina</div>
+                    <div class="text-sm opacity-75">Preparar órdenes</div>
+                </button>
+                <button id="demo-serve" class="bg-green-600 hover:bg-green-700 text-white p-4 rounded-lg">
+                    <i class="fas fa-check-circle text-2xl mb-2"></i>
+                    <div class="font-medium">Servir</div>
+                    <div class="text-sm opacity-75">Entregar al cliente</div>
+                </button>
+                <button id="demo-cashier" class="bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-lg">
+                    <i class="fas fa-cash-register text-2xl mb-2"></i>
+                    <div class="font-medium">Cajero</div>
+                    <div class="text-sm opacity-75">Procesar pago</div>
+                </button>
+            </div>
+
+            <button id="run-full-demo" class="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-lg font-medium">
+                <i class="fas fa-play mr-2"></i>Ejecutar Demo Completo
+            </button>
+        </div>
+
+        <div id="demo-content" class="space-y-6"></div>
+    </div>
+
+    <!-- Include all data files -->
+    <script src="js/data/users.js"></script>
+    <script src="js/data/menu.js"></script>
+    <script src="js/data/orders.js"></script>
+
+    <!-- Include utility modules -->
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+
+    <!-- Include feature modules -->
+    <script src="js/modules/admin.js"></script>
+    <script src="js/modules/kitchen.js"></script>
+    <script src="js/modules/cashier.js"></script>
+    <script src="js/modules/waiter.js"></script>
+
+    <!-- Include main app -->
+    <script src="js/app.js"></script>
+
+    <script>
+        class RestaurantDemo {
+            constructor() {
+                this.currentStep = 0;
+                this.demoOrder = null;
+                this.steps = [
+                    { title: 'Autenticación como Mesero', action: () => this.loginAsWaiter() },
+                    { title: 'Seleccionar Mesa Disponible', action: () => this.selectTable() },
+                    { title: 'Tomar Orden del Cliente', action: () => this.takeOrder() },
+                    { title: 'Enviar a Cocina', action: () => this.sendToKitchen() },
+                    { title: 'Preparación en Cocina', action: () => this.prepareInKitchen() },
+                    { title: 'Marcar como Listo', action: () => this.markAsReady() },
+                    { title: 'Servir al Cliente', action: () => this.serveToCustomer() },
+                    { title: 'Procesar Pago', action: () => this.processPayment() },
+                    { title: 'Finalizar y Limpiar Mesa', action: () => this.finishAndClean() }
+                ];
+            }
+
+            log(message, type = 'info') {
+                console.log(`[DEMO] ${message}`);
+                this.displayMessage(message, type);
+            }
+
+            displayMessage(message, type) {
+                const container = document.getElementById('demo-content');
+                const messageEl = document.createElement('div');
+                
+                const typeClasses = {
+                    'info': 'bg-blue-50 border-blue-200 text-blue-800',
+                    'success': 'bg-green-50 border-green-200 text-green-800',
+                    'warning': 'bg-yellow-50 border-yellow-200 text-yellow-800',
+                    'error': 'bg-red-50 border-red-200 text-red-800'
+                };
+
+                messageEl.className = `border rounded-lg p-4 ${typeClasses[type] || typeClasses.info}`;
+                messageEl.innerHTML = `
+                    <div class="flex items-start">
+                        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'} mr-3 mt-1"></i>
+                        <div>
+                            <div class="font-medium">${message}</div>
+                            <div class="text-sm opacity-75">${new Date().toLocaleTimeString()}</div>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(messageEl);
+                container.scrollTop = container.scrollHeight;
+            }
+
+            async runFullDemo() {
+                document.getElementById('demo-content').innerHTML = '';
+                this.log('🚀 Iniciando demostración completa del sistema', 'info');
+                
+                for (let i = 0; i < this.steps.length; i++) {
+                    const step = this.steps[i];
+                    this.log(`Paso ${i + 1}: ${step.title}`, 'info');
+                    
+                    try {
+                        await step.action();
+                        await this.delay(1000); // Pausa entre pasos
+                    } catch (error) {
+                        this.log(`Error en paso ${i + 1}: ${error.message}`, 'error');
+                        break;
+                    }
+                }
+
+                this.log('✅ Demo completado exitosamente', 'success');
+            }
+
+            async delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            loginAsWaiter() {
+                return new Promise((resolve) => {
+                    try {
+                        const success = window.Auth.login('mesero1', 'mesero123');
+                        if (success) {
+                            this.log('✅ Autenticado como mesero exitosamente', 'success');
+                            resolve();
+                        } else {
+                            throw new Error('Error de autenticación');
+                        }
+                    } catch (error) {
+                        this.log('❌ Error de autenticación: ' + error.message, 'error');
+                        throw error;
+                    }
+                });
+            }
+
+            selectTable() {
+                return new Promise((resolve) => {
+                    try {
+                        // Simular selección de mesa 3
+                        this.log('🪑 Seleccionando mesa 3 para nueva orden', 'info');
+                        this.log('✅ Mesa 3 seleccionada y disponible', 'success');
+                        resolve();
+                    } catch (error) {
+                        this.log('❌ Error al seleccionar mesa: ' + error.message, 'error');
+                        throw error;
+                    }
+                });
+            }
+
+            takeOrder() {
+                return new Promise((resolve) => {
+                    try {
+                        // Crear orden demo
+                        this.demoOrder = {
+                            id: Date.now(),
+                            table: 3,
+                            items: [
+                                { id: 1, name: 'Pollo a la Brasa Entero', price: 45.00, quantity: 1, subtotal: 45.00 },
+                                { id: 4, name: 'Papas Fritas', price: 8.00, quantity: 2, subtotal: 16.00 },
+                                { id: 7, name: 'Coca Cola 500ml', price: 4.50, quantity: 2, subtotal: 9.00 }
+                            ],
+                            total: 70.00,
+                            status: 'new',
+                            timestamp: new Date().toISOString()
+                        };
+
+                        this.log('📝 Tomando orden del cliente:', 'info');
+                        this.demoOrder.items.forEach(item => {
+                            this.log(`   • ${item.quantity}x ${item.name} - S/ ${item.subtotal.toFixed(2)}`, 'info');
+                        });
+                        this.log(`💰 Total de la orden: S/ ${this.demoOrder.total.toFixed(2)}`, 'success');
+                        resolve();
+                    } catch (error) {
+                        this.log('❌ Error al tomar orden: ' + error.message, 'error');
+                        throw error;
+                    }
+                });
+            }
+
+            sendToKitchen() {
+                return new Promise((resolve) => {
+                    try {
+                        // Agregar orden al sistema
+                        window.orders.push(this.demoOrder);
+                        this.log('🍳 Orden enviada a cocina', 'success');
+                        this.log(`📋 Orden #${this.demoOrder.id} en cola de preparación`, 'info');
+                        resolve();
+                    } catch (error) {
+                        this.log('❌ Error al enviar a cocina: ' + error.message, 'error');
+                        throw error;
+                    }
+                });
+            }
+
+            prepareInKitchen() {
+                return new Promise((resolve) => {
+                    try {
+                        // Simular inicio de preparación
+                        this.demoOrder.status = 'prep';
+                        this.demoOrder.prepStartTime = new Date().toISOString();
+                        this.log('👨‍🍳 Cocina: Iniciando preparación de la orden', 'info');
+                        this.log('🔥 Cocinando pollo a la brasa...', 'info');
+                        this.log('🍟 Preparando papas fritas...', 'info');
+                        resolve();
+                    } catch (error) {
+                        this.log('❌ Error en preparación: ' + error.message, 'error');
+                        throw error;
+                    }
+                });
+            }
+
+            markAsReady() {
+                return new Promise((resolve) => {
+                    try {
+                        this.demoOrder.status = 'ready';
+                        this.demoOrder.readyTime = new Date().toISOString();
+                        this.log('✅ Cocina: Orden lista para servir', 'success');
+                        this.log('🔔 Notificación enviada al mesero', 'info');
+                        resolve();
+                    } catch (error) {
+                        this.log('❌ Error al marcar como listo: ' + error.message, 'error');
+                        throw error;
+                    }
+                });
+            }
+
+            serveToCustomer() {
+                return new Promise((resolve) => {
+                    try {
+                        this.demoOrder.status = 'served';
+                        this.demoOrder.servedTime = new Date().toISOString();
+                        this.log('🍽️ Orden servida al cliente en mesa 3', 'success');
+                        this.log('😊 Cliente satisfecho con la comida', 'success');
+                        resolve();
+                    } catch (error) {
+                        this.log('❌ Error al servir: ' + error.message, 'error');
+                        throw error;
+                    }
+                });
+            }
+
+            processPayment() {
+                return new Promise((resolve) => {
+                    try {
+                        // Simular proceso de pago
+                        const payment = {
+                            orderId: this.demoOrder.id,
+                            method: 'cash',
+                            amount: this.demoOrder.total,
+                            received: 80.00,
+                            change: 10.00,
+                            timestamp: new Date().toISOString()
+                        };
+
+                        this.demoOrder.status = 'paid';
+                        this.demoOrder.payment = payment;
+
+                        this.log('💳 Procesando pago en caja:', 'info');
+                        this.log(`   • Método: Efectivo`, 'info');
+                        this.log(`   • Total: S/ ${payment.amount.toFixed(2)}`, 'info');
+                        this.log(`   • Recibido: S/ ${payment.received.toFixed(2)}`, 'info');
+                        this.log(`   • Cambio: S/ ${payment.change.toFixed(2)}`, 'info');
+                        this.log('🧾 Recibo impreso', 'success');
+                        resolve();
+                    } catch (error) {
+                        this.log('❌ Error en procesamiento de pago: ' + error.message, 'error');
+                        throw error;
+                    }
+                });
+            }
+
+            finishAndClean() {
+                return new Promise((resolve) => {
+                    try {
+                        // Marcar mesa para limpieza
+                        this.log('🧹 Mesa 3 marcada para limpieza', 'info');
+                        this.log('✨ Mesa limpiada y disponible para nuevos clientes', 'success');
+                        this.log('📊 Venta registrada en reportes', 'info');
+                        resolve();
+                    } catch (error) {
+                        this.log('❌ Error en finalización: ' + error.message, 'error');
+                        throw error;
+                    }
+                });
+            }
+
+            // Demos individuales
+            demoWaiter() {
+                this.log('👨‍💼 Demo: Funcionalidad de Mesero', 'info');
+                this.log('• Gestión de mesas disponibles', 'info');
+                this.log('• Toma de órdenes con menú interactivo', 'info');
+                this.log('• Seguimiento de órdenes activas', 'info');
+                this.log('• Servicio al cliente', 'info');
+            }
+
+            demoKitchen() {
+                this.log('👨‍🍳 Demo: Funcionalidad de Cocina', 'info');
+                this.log('• Vista de órdenes pendientes', 'info');
+                this.log('• Control de tiempos de preparación', 'info');
+                this.log('• Actualización de estado de órdenes', 'info');
+                this.log('• Notificaciones cuando está listo', 'info');
+            }
+
+            demoServe() {
+                this.log('🍽️ Demo: Proceso de Servicio', 'info');
+                this.log('• Identificación de órdenes listas', 'info');
+                this.log('• Confirmación de entrega', 'info');
+                this.log('• Actualización de estado de mesa', 'info');
+            }
+
+            demoCashier() {
+                this.log('💰 Demo: Funcionalidad de Caja', 'info');
+                this.log('• Procesamiento de múltiples métodos de pago', 'info');
+                this.log('• Cálculo automático de cambio', 'info');
+                this.log('• Generación de recibos', 'info');
+                this.log('• Reportes de ventas', 'info');
+            }
+        }
+
+        // Initialize demo
+        document.addEventListener('DOMContentLoaded', () => {
+            const demo = new RestaurantDemo();
+            
+            document.getElementById('run-full-demo').addEventListener('click', () => {
+                demo.runFullDemo();
+            });
+
+            document.getElementById('demo-waiter').addEventListener('click', () => {
+                document.getElementById('demo-content').innerHTML = '';
+                demo.demoWaiter();
+            });
+
+            document.getElementById('demo-kitchen').addEventListener('click', () => {
+                document.getElementById('demo-content').innerHTML = '';
+                demo.demoKitchen();
+            });
+
+            document.getElementById('demo-serve').addEventListener('click', () => {
+                document.getElementById('demo-content').innerHTML = '';
+                demo.demoServe();
+            });
+
+            document.getElementById('demo-cashier').addEventListener('click', () => {
+                document.getElementById('demo-content').innerHTML = '';
+                demo.demoCashier();
+            });
+        });
+    </script>
+</body>
+</html>
