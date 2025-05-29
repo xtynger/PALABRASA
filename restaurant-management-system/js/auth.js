@@ -25,26 +25,13 @@ const authModule = (() => {
 
     // Setup event listeners
     function setupEventListeners() {
-        const loginButton = document.getElementById('login-btn');
+        // Note: Login button event handling is now managed by app.js
+        // This avoids conflicts between multiple event listeners
         const logoutButton = document.getElementById('logout-btn');
-
-        if (loginButton) {
-            loginButton.addEventListener('click', handleLogin);
-        }
 
         if (logoutButton) {
             logoutButton.addEventListener('click', handleLogout);
         }
-
-        // Enter key support for login
-        const loginInputs = document.querySelectorAll('#username, #password');
-        loginInputs.forEach(input => {
-            input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    handleLogin();
-                }
-            });
-        });
     }
 
     // Handle login process
@@ -56,7 +43,9 @@ const authModule = (() => {
 
         // Validation
         if (!username || !password) {
-            showNotification('Error', 'Por favor complete todos los campos', 'error');
+            if (window.Utils) {
+                Utils.showNotification('Error', 'Por favor complete todos los campos', 'error');
+            }
             return false;
         }
 
@@ -65,7 +54,8 @@ const authModule = (() => {
 
     // Direct login function for programmatic use
     function login(username, password, role) {
-        return authenticateUser(username, password, role, false);
+        const result = authenticateUser(username, password, role, false);
+        return result;
     }
 
     // Authenticate user
@@ -114,7 +104,9 @@ const authModule = (() => {
         // Clear login form
         clearLoginForm();
         
-        showNotification('Información', 'Sesión cerrada correctamente', 'info');
+        if (window.Utils) {
+            Utils.showNotification('Información', 'Sesión cerrada correctamente', 'info');
+        }
     }
 
     // Check for remembered user

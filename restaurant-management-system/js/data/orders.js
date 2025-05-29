@@ -1,65 +1,213 @@
-const orders = [
-    {
-        id: 1,
-        tableNumber: 5,
-        items: [
-            { id: 1, name: "Pollo a la Brasa", price: 35.00, quantity: 1 },
-            { id: 7, name: "Coca Cola", price: 5.00, quantity: 2 }
-        ],
-        total: 45.00,
-        status: "new",
-        timestamp: new Date().toISOString(),
-        waiter: "Juan Pérez"
-    },
-    {
-        id: 2,
-        tableNumber: 3,
-        items: [
-            { id: 4, name: "Parrillada Familiar", price: 65.00, quantity: 1 },
-            { id: 8, name: "Chicha Morada", price: 6.00, quantity: 1 }
-        ],
-        total: 71.00,
-        status: "preparing",
-        timestamp: new Date(Date.now() - 300000).toISOString(), // 5 minutes ago
-        waiter: "María González"
-    },
-    {
-        id: 3,
-        tableNumber: 8,
-        items: [
-            { id: 2, name: "Pollo Broaster", price: 30.00, quantity: 1 },
-            { id: 6, name: "Papas Fritas", price: 8.00, quantity: 1 }
-        ],
-        total: 38.00,
-        status: "ready",
-        timestamp: new Date(Date.now() - 600000).toISOString(), // 10 minutes ago
-        waiter: "Carlos López"
+// Orders data management with localStorage persistence
+const STORAGE_KEY = 'restaurant_orders';
+const TABLES_KEY = 'restaurant_tables';
+
+// Initialize table management
+function initializeTables() {
+    const tables = [];
+    for (let i = 1; i <= 12; i++) {
+        tables.push({
+            id: i,
+            status: 'available', // available, occupied, reserved
+            currentOrderId: null,
+            waiter: null
+        });
     }
-];
+    return tables;
+}
+
+// Load/save tables
+function loadTables() {
+    try {
+        const stored = localStorage.getItem(TABLES_KEY);
+        return stored ? JSON.parse(stored) : initializeTables();
+    } catch (error) {
+        console.error('Error loading tables:', error);
+        return initializeTables();
+    }
+}
+
+function saveTables(tables) {
+    try {
+        localStorage.setItem(TABLES_KEY, JSON.stringify(tables));
+    } catch (error) {
+        console.error('Error saving tables:', error);
+    }
+}
+
+let tables = loadTables();
+
+// Load orders from localStorage or start with empty array
+function loadOrders() {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            const orders = JSON.parse(stored);
+            // Convert date strings back to Date objects
+            return orders.map(order => ({
+                ...order,
+                timestamp: new Date(order.timestamp),
+                startTime: order.startTime ? new Date(order.startTime) : null,
+                endTime: order.endTime ? new Date(order.endTime) : null
+            }));
+        }
+    } catch (error) {
+        console.error('Error loading orders from localStorage:', error);
+    }
+    // Start with empty orders array for clean system
+    return [];
+}
+
+// Save orders to localStorage
+function saveOrders(orders) {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+    } catch (error) {
+        console.error('Error saving orders to localStorage:', error);
+    }
+}
+
+// Initialize orders
+let orders = loadOrders();
 
 function addOrder(order) {
-    order.id = orders.length + 1;
-    order.timestamp = new Date().toISOString();
+    order.id = Date.now(); // Use timestamp as unique ID
+    order.timestamp = new Date();
+    order.startTime = null;
+    order.endTime = null;
+    order.preparationTime = 0;
     orders.push(order);
+    saveOrders(orders);
+    
+    // Update table status
+    const table = tables.find(t => t.id === order.table);
+    if (table) {
+        table.status = 'occupied';
+        table.currentOrderId = order.id;
+        table.waiter = order.waiter;
+        saveTables(tables);
+    }
+    
+    // Trigger custom event for real-time updates
+    window.dispatchEvent(new CustomEvent('ordersUpdated', { detail: orders }));
+    window.dispatchEvent(new CustomEvent('tablesUpdated', { detail: tables }));
 }
 
 function getOrders() {
     return orders;
 }
 
-function updateOrderStatus(orderId, status) {
+function updateOrderStatus(orderId, status, additionalData = {}) {
     const order = orders.find(o => o.id === orderId);
     if (order) {
         order.status = status;
+        
+        // Update timing based on status
+        if (status === 'preparing' && !order.startTime) {
+            order.startTime = new Date();
+        } else if (status === 'ready' && order.startTime && !order.endTime) {
+            order.endTime = new Date();
+            order.preparationTime = Math.floor((order.endTime - order.startTime) / 1000); // in seconds
+        } else if (status === 'completed' || status === 'cancelled') {
+            // Free up the table when order is completed or cancelled
+            const table = tables.find(t => t.currentOrderId === orderId);
+            if (table) {
+                table.status = 'available';
+                table.currentOrderId = null;
+                table.waiter = null;
+                saveTables(tables);
+                window.dispatchEvent(new CustomEvent('tablesUpdated', { detail: tables }));
+            }
+        }
+        
+        // Merge any additional data
+        Object.assign(order, additionalData);
+        
+        saveOrders(orders);
+        
+        // Update table status based on order status
+        updateTableStatusForOrder(order);
+        
+        // Trigger events for immediate real-time updates
+        window.dispatchEvent(new CustomEvent('ordersUpdated', { detail: orders }));
+        window.dispatchEvent(new CustomEvent('orderStatusChanged', { 
+            detail: { orderId: order.id, status: order.status, order: order }
+        }));
+        
+        console.log(`Order ${orderId} status updated to ${status}`);
     }
 }
 
+// Helper function to update table status based on order status
+function updateTableStatusForOrder(order) {
+    const table = tables.find(t => t.id === order.table);
+    if (table) {
+        if (order.status === 'completed' || order.status === 'cancelled') {
+            table.status = 'available';
+            table.currentOrderId = null;
+            table.waiter = null;
+        } else {
+            table.status = 'occupied';
+            table.currentOrderId = order.id;
+            table.waiter = order.waiter;
+        }
+        saveTables(tables);
+        window.dispatchEvent(new CustomEvent('tablesUpdated', { detail: tables }));
+    }
+}
+
+function getActiveOrders() {
+    return orders.filter(order => ['pending', 'preparing', 'ready'].includes(order.status));
+}
+
+function getOrderHistory() {
+    return orders.filter(order => ['completed', 'cancelled'].includes(order.status));
+}
+
 function clearOrders() {
-    orders.length = 0;
+    orders = [];
+    saveOrders(orders);
+    // Reset all tables
+    tables = initializeTables();
+    saveTables(tables);
+    window.dispatchEvent(new CustomEvent('ordersUpdated', { detail: orders }));
+    window.dispatchEvent(new CustomEvent('tablesUpdated', { detail: tables }));
+}
+
+// Table management functions
+function getTables() {
+    return tables;
+}
+
+function updateTableStatus(tableId, status, waiter = null) {
+    const table = tables.find(t => t.id === tableId);
+    if (table) {
+        table.status = status;
+        if (waiter) table.waiter = waiter;
+        saveTables(tables);
+        window.dispatchEvent(new CustomEvent('tablesUpdated', { detail: tables }));
+    }
+}
+
+function getAvailableTables() {
+    return tables.filter(t => t.status === 'available');
+}
+
+function getOccupiedTables() {
+    return tables.filter(t => t.status === 'occupied');
 }
 
 // Make functions available globally
 window.addOrder = addOrder;
 window.getOrders = getOrders;
 window.updateOrderStatus = updateOrderStatus;
+window.getActiveOrders = getActiveOrders;
+window.getOrderHistory = getOrderHistory;
 window.clearOrders = clearOrders;
+window.getTables = getTables;
+window.updateTableStatus = updateTableStatus;
+window.getAvailableTables = getAvailableTables;
+window.getOccupiedTables = getOccupiedTables;
+
+// Initialize ordersData for compatibility
+window.ordersData = orders;
