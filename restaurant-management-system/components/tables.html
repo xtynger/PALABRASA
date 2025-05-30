@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tables Component</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+    <div class="tables-container">
+        <h2 class="text-xl font-bold mb-4">Tables</h2>
+        <table class="min-w-full bg-white border border-gray-300">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="py-2 px-4 border-b">Table Number</th>
+                    <th class="py-2 px-4 border-b">Capacity</th>
+                    <th class="py-2 px-4 border-b">Status</th>
+                    <th class="py-2 px-4 border-b">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="py-2 px-4 border-b">1</td>
+                    <td class="py-2 px-4 border-b">4</td>
+                    <td class="py-2 px-4 border-b"><span class="status-badge status-new">Available</span></td>
+                    <td class="py-2 px-4 border-b">
+                        <button class="bg-primary text-white px-2 py-1 rounded">View</button>
+                        <button class="bg-secondary text-white px-2 py-1 rounded">Reserve</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="py-2 px-4 border-b">2</td>
+                    <td class="py-2 px-4 border-b">2</td>
+                    <td class="py-2 px-4 border-b"><span class="status-badge status-prep">In Use</span></td>
+                    <td class="py-2 px-4 border-b">
+                        <button class="bg-primary text-white px-2 py-1 rounded">View</button>
+                        <button class="bg-secondary text-white px-2 py-1 rounded">Release</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="py-2 px-4 border-b">3</td>
+                    <td class="py-2 px-4 border-b">6</td>
+                    <td class="py-2 px-4 border-b"><span class="status-badge status-ready">Reserved</span></td>
+                    <td class="py-2 px-4 border-b">
+                        <button class="bg-primary text-white px-2 py-1 rounded">View</button>
+                        <button class="bg-secondary text-white px-2 py-1 rounded">Cancel</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script src="../js/app.js"></script>
+</body>
+</html>

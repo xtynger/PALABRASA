@@ -1,0 +1,49 @@
+<!-- filepath: restaurant-management-system/components/forms.html -->
+<div class="form-container">
+    <!-- Login Form -->
+    <form id="login-form" class="hidden">
+        <h2 class="text-2xl font-bold mb-4">Iniciar Sesión</h2>
+        <div class="mb-4">
+            <label for="username" class="block text-sm font-medium">Usuario</label>
+            <input type="text" id="username" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+        </div>
+        <div class="mb-4">
+            <label for="password" class="block text-sm font-medium">Contraseña</label>
+            <input type="password" id="password" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+        </div>
+        <button type="submit" class="w-full bg-primary text-white py-2 rounded-md">Ingresar</button>
+    </form>
+
+    <!-- Order Form -->
+    <form id="order-form" class="hidden">
+        <h2 class="text-2xl font-bold mb-4">Agregar Orden</h2>
+        <div class="mb-4">
+            <label for="table-number" class="block text-sm font-medium">Número de Mesa</label>
+            <input type="number" id="table-number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+        </div>
+        <div class="mb-4">
+            <label for="order-items" class="block text-sm font-medium">Items de la Orden</label>
+            <textarea id="order-items" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="w-full bg-primary text-white py-2 rounded-md">Agregar a la Orden</button>
+    </form>
+
+    <!-- User Management Form -->
+    <form id="user-management-form" class="hidden">
+        <h2 class="text-2xl font-bold mb-4">Gestión de Usuarios</h2>
+        <div class="mb-4">
+            <label for="new-username" class="block text-sm font-medium">Nombre de Usuario</label>
+            <input type="text" id="new-username" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+        </div>
+        <div class="mb-4">
+            <label for="new-role" class="block text-sm font-medium">Rol</label>
+            <select id="new-role" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3" required>
+                <option value="admin">Administrador</option>
+                <option value="cashier">Cajero</option>
+                <option value="kitchen">Cocina</option>
+                <option value="waiter">Mesero</option>
+            </select>
+        </div>
+        <button type="submit" class="w-full bg-primary text-white py-2 rounded-md">Agregar Usuario</button>
+    </form>
+</div>
