@@ -501,11 +501,11 @@ window.KitchenModule = (() => {
     
     // Initialize on load
     init();
-    
-    console.log('KitchenModule loaded successfully');
+      console.log('KitchenModule loaded successfully');
     
     return {
         showView,
+        loadView: showView, // Alias for compatibility with app.js
         startOrder,
         finishOrder,
         cancelOrder

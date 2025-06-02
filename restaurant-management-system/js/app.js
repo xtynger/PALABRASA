@@ -217,11 +217,9 @@ class RestaurantApp {
         if (firstNavItem) {
             firstNavItem.click();
         }
-    }
-
-    loadView(viewId) {
+    }    loadView(viewId) {
         this.activeView = viewId;
-        const contentContainer = document.getElementById('main-content');
+        const contentContainer = document.getElementById('content-container');
         if (!contentContainer) return;
 
         // Clear current content

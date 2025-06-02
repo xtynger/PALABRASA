@@ -460,10 +460,35 @@ window.CashierModule = (() => {
 
             Utils.showNotification('Detalles de Orden', `Ver detalles de la orden #${orderId} (función en desarrollo)`, 'info');
         }
-    };
-
-    function bindEventListeners(viewId) {
+    };    function bindEventListeners(viewId) {
         // No specific event listeners needed for cashier views
         // All interactions are handled through onclick attributes or method calls
     }
+
+    function showView(viewId) {
+        currentView = viewId;
+        const container = document.getElementById('content-container');
+        
+        if (container && templates[viewId]) {
+            container.innerHTML = templates[viewId]();
+            bindEventListeners(viewId);
+        } else {
+            if (container) {
+                container.innerHTML = `
+                    <div class="p-6">
+                        <p class="text-red-500">Error: Vista "${viewId}" no encontrada</p>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    // Public API
+    return {
+        showView,
+        loadView: showView, // Alias for compatibility with app.js
+        processPayment: publicMethods.processPayment,
+        printReceipt: publicMethods.printReceipt,
+        viewOrderDetails: publicMethods.viewOrderDetails
+    };
 })();

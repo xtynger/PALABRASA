@@ -92,10 +92,9 @@ window.AdminModule = (() => {
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="bg-white rounded-lg shadow p-6">
+                <!-- Quick Actions -->                <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="text-xl font-semibold text-gray-800 mb-4">Acciones Rápidas</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <button onclick="AdminModule.showView('users')" 
                                 class="flex items-center p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
                             <i class="fas fa-user-plus text-blue-600 text-2xl mr-3"></i>
@@ -120,6 +119,15 @@ window.AdminModule = (() => {
                             <div class="text-left">
                                 <div class="font-medium text-gray-800">Ver Reportes</div>
                                 <div class="text-sm text-gray-500">Análisis y estadísticas</div>
+                            </div>
+                        </button>
+                        
+                        <button onclick="AdminModule.showView('diagnostics')" 
+                                class="flex items-center p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
+                            <i class="fas fa-stethoscope text-orange-600 text-2xl mr-3"></i>
+                            <div class="text-left">
+                                <div class="font-medium text-gray-800">Diagnósticos</div>
+                                <div class="text-sm text-gray-500">Herramientas de sistema</div>
                             </div>
                         </button>
                     </div>
@@ -306,6 +314,119 @@ window.AdminModule = (() => {
                                 </select>
                             </div>
                         </div>
+                    </div>                </div>
+            </div>
+        `,
+
+        diagnostics: () => `
+            <div class="space-y-6">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-800">Diagnósticos del Sistema</h2>
+                    <div class="text-sm text-gray-500">${Utils.formatTime(new Date())}</div>
+                </div>
+
+                <!-- System Tests -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <!-- Authentication Tests -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-user-shield text-blue-600 mr-2"></i>
+                            Pruebas de Autenticación
+                        </h3>
+                        <div class="space-y-3">
+                            <button onclick="AdminModule.runAuthTests()" 
+                                    class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                                Ejecutar Pruebas de Login
+                            </button>
+                            <div id="auth-results" class="text-sm bg-gray-50 p-3 rounded hidden"></div>
+                        </div>
+                    </div>
+
+                    <!-- Menu Integration Tests -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-utensils text-green-600 mr-2"></i>
+                            Pruebas de Menú
+                        </h3>
+                        <div class="space-y-3">
+                            <button onclick="AdminModule.runMenuTests()" 
+                                    class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">
+                                Verificar Integridad del Menú
+                            </button>
+                            <div id="menu-results" class="text-sm bg-gray-50 p-3 rounded hidden"></div>
+                        </div>
+                    </div>
+
+                    <!-- Table Management Tests -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-table text-purple-600 mr-2"></i>
+                            Pruebas de Mesas
+                        </h3>
+                        <div class="space-y-3">
+                            <button onclick="AdminModule.runTableTests()" 
+                                    class="w-full bg-purple-600 text-white py-2 px-4 rounded hover:bg-purple-700">
+                                Verificar Gestión de Mesas
+                            </button>
+                            <div id="table-results" class="text-sm bg-gray-50 p-3 rounded hidden"></div>
+                        </div>
+                    </div>
+
+                    <!-- Order Workflow Tests -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-shopping-cart text-orange-600 mr-2"></i>
+                            Pruebas de Órdenes
+                        </h3>
+                        <div class="space-y-3">
+                            <button onclick="AdminModule.runOrderTests()" 
+                                    class="w-full bg-orange-600 text-white py-2 px-4 rounded hover:bg-orange-700">
+                                Probar Flujo de Órdenes
+                            </button>
+                            <div id="order-results" class="text-sm bg-gray-50 p-3 rounded hidden"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-heartbeat text-red-600 mr-2"></i>
+                        Estado del Sistema
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600" id="system-status">✓</div>
+                            <div class="text-sm text-gray-600">Sistema Operativo</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600" id="modules-status">${getModulesCount()}</div>
+                            <div class="text-sm text-gray-600">Módulos Cargados</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-purple-600" id="data-status">${getDataStatus()}</div>
+                            <div class="text-sm text-gray-600">Integridad de Datos</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Complete System Test -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-cogs text-indigo-600 mr-2"></i>
+                        Prueba Completa del Sistema
+                    </h3>
+                    <div class="space-y-4">
+                        <button onclick="AdminModule.runCompleteSystemTest()" 
+                                class="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 font-medium">
+                            Ejecutar Prueba Completa
+                        </button>
+                        <div id="complete-test-results" class="hidden">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <div class="text-sm font-medium text-gray-700 mb-2">Resultados de la Prueba:</div>
+                                <div id="complete-test-log" class="text-xs text-gray-600 font-mono whitespace-pre-line max-h-64 overflow-y-auto"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -361,8 +482,247 @@ window.AdminModule = (() => {
                     <p class="text-sm font-medium text-gray-800">${activity.text}</p>
                     <p class="text-xs text-gray-500">Hace ${activity.time}</p>
                 </div>
-            </div>
-        `).join('');
+            </div>        `).join('');
+    }
+
+    // Diagnostic helper functions
+    function getModulesCount() {
+        const modules = ['AdminModule', 'WaiterModule', 'KitchenModule', 'CashierModule'];
+        const loadedModules = modules.filter(module => window[module]);
+        return loadedModules.length;
+    }
+
+    function getDataStatus() {
+        const dataChecks = [
+            window.users && Array.isArray(window.users),
+            window.menu && Array.isArray(window.menu),
+            window.tables && Array.isArray(window.tables),
+            window.orders && Array.isArray(window.orders)
+        ];
+        const passedChecks = dataChecks.filter(check => check).length;
+        return `${passedChecks}/4`;
+    }
+
+    // Diagnostic test functions
+    function runAuthTests() {
+        const resultsEl = document.getElementById('auth-results');
+        resultsEl.classList.remove('hidden');
+        
+        let results = 'Ejecutando pruebas de autenticación...\n\n';
+        
+        // Test 1: User data exists
+        if (window.users && window.users.length > 0) {
+            results += '✓ Datos de usuarios cargados correctamente\n';
+        } else {
+            results += '✗ Error: No se encontraron datos de usuarios\n';
+        }
+        
+        // Test 2: Login functions exist
+        if (typeof window.login === 'function') {
+            results += '✓ Función de login disponible\n';
+        } else {
+            results += '✗ Error: Función de login no encontrada\n';
+        }
+        
+        // Test 3: Test roles
+        const roles = ['admin', 'waiter', 'kitchen', 'cashier'];
+        const userRoles = window.users ? window.users.map(u => u.role) : [];
+        roles.forEach(role => {
+            if (userRoles.includes(role)) {
+                results += `✓ Rol ${role} encontrado en el sistema\n`;
+            } else {
+                results += `⚠ Advertencia: Rol ${role} no encontrado\n`;
+            }
+        });
+        
+        results += '\nPruebas completadas.';
+        resultsEl.textContent = results;
+    }
+
+    function runMenuTests() {
+        const resultsEl = document.getElementById('menu-results');
+        resultsEl.classList.remove('hidden');
+        
+        let results = 'Ejecutando pruebas del menú...\n\n';
+        
+        // Test 1: Menu data exists
+        if (window.menu && window.menu.length > 0) {
+            results += `✓ Menú cargado con ${window.menu.length} elementos\n`;
+        } else {
+            results += '✗ Error: No se encontraron datos del menú\n';
+            resultsEl.textContent = results;
+            return;
+        }
+        
+        // Test 2: Required fields
+        const requiredFields = ['id', 'name', 'price', 'category'];
+        let validItems = 0;
+        window.menu.forEach((item, index) => {
+            const hasAllFields = requiredFields.every(field => item.hasOwnProperty(field));
+            if (hasAllFields) {
+                validItems++;
+            } else {
+                results += `⚠ Elemento ${index + 1} tiene campos faltantes\n`;
+            }
+        });
+        results += `✓ ${validItems}/${window.menu.length} elementos válidos\n`;
+        
+        // Test 3: Categories
+        const categories = [...new Set(window.menu.map(item => item.category))];
+        results += `✓ Categorías encontradas: ${categories.join(', ')}\n`;
+        
+        results += '\nPruebas completadas.';
+        resultsEl.textContent = results;
+    }
+
+    function runTableTests() {
+        const resultsEl = document.getElementById('table-results');
+        resultsEl.classList.remove('hidden');
+        
+        let results = 'Ejecutando pruebas de gestión de mesas...\n\n';
+        
+        // Test 1: Tables data exists
+        if (window.tables && window.tables.length > 0) {
+            results += `✓ Sistema de mesas cargado con ${window.tables.length} mesas\n`;
+        } else {
+            results += '✗ Error: No se encontraron datos de mesas\n';
+            resultsEl.textContent = results;
+            return;
+        }
+        
+        // Test 2: Table statuses
+        const statuses = ['available', 'occupied', 'cleaning'];
+        const tableStatuses = window.tables.map(t => t.status);
+        statuses.forEach(status => {
+            const count = tableStatuses.filter(s => s === status).length;
+            results += `✓ Mesas ${status}: ${count}\n`;
+        });
+        
+        // Test 3: Table functions
+        if (typeof window.getTables === 'function') {
+            results += '✓ Función getTables disponible\n';
+        } else {
+            results += '⚠ Función getTables no encontrada\n';
+        }
+        
+        results += '\nPruebas completadas.';
+        resultsEl.textContent = results;
+    }
+
+    function runOrderTests() {
+        const resultsEl = document.getElementById('order-results');
+        resultsEl.classList.remove('hidden');
+        
+        let results = 'Ejecutando pruebas del flujo de órdenes...\n\n';
+        
+        // Test 1: Orders data
+        if (window.orders && Array.isArray(window.orders)) {
+            results += `✓ Sistema de órdenes inicializado con ${window.orders.length} órdenes\n`;
+        } else {
+            results += '⚠ Sistema de órdenes vacío o no inicializado\n';
+        }
+        
+        // Test 2: Order functions
+        const orderFunctions = ['addOrder', 'updateOrderStatus', 'getOrders'];
+        orderFunctions.forEach(func => {
+            if (typeof window[func] === 'function') {
+                results += `✓ Función ${func} disponible\n`;
+            } else {
+                results += `⚠ Función ${func} no encontrada\n`;
+            }
+        });
+        
+        // Test 3: Order statuses
+        if (window.orders && window.orders.length > 0) {
+            const statuses = ['pending', 'preparing', 'ready', 'served', 'paid'];
+            const orderStatuses = window.orders.map(o => o.status);
+            statuses.forEach(status => {
+                const count = orderStatuses.filter(s => s === status).length;
+                if (count > 0) {
+                    results += `✓ Órdenes ${status}: ${count}\n`;
+                }
+            });
+        }
+        
+        results += '\nPruebas completadas.';
+        resultsEl.textContent = results;
+    }
+
+    function runCompleteSystemTest() {
+        const resultsEl = document.getElementById('complete-test-results');
+        const logEl = document.getElementById('complete-test-log');
+        resultsEl.classList.remove('hidden');
+        
+        let log = 'INICIANDO PRUEBA COMPLETA DEL SISTEMA\n';
+        log += '='.repeat(50) + '\n\n';
+        
+        // Test all modules
+        log += '1. VERIFICANDO MÓDULOS...\n';
+        const modules = [
+            { name: 'AdminModule', obj: window.AdminModule },
+            { name: 'WaiterModule', obj: window.WaiterModule },
+            { name: 'KitchenModule', obj: window.KitchenModule },
+            { name: 'CashierModule', obj: window.CashierModule }
+        ];
+        
+        modules.forEach(module => {
+            if (module.obj) {
+                log += `   ✓ ${module.name} cargado correctamente\n`;
+            } else {
+                log += `   ✗ ${module.name} no encontrado\n`;
+            }
+        });
+        
+        // Test data integrity
+        log += '\n2. VERIFICANDO INTEGRIDAD DE DATOS...\n';
+        const dataTests = [
+            { name: 'Usuarios', data: window.users, required: true },
+            { name: 'Menú', data: window.menu, required: true },
+            { name: 'Mesas', data: window.tables, required: true },
+            { name: 'Órdenes', data: window.orders, required: false }
+        ];
+        
+        dataTests.forEach(test => {
+            if (test.data && Array.isArray(test.data)) {
+                log += `   ✓ ${test.name}: ${test.data.length} elementos\n`;
+            } else if (test.required) {
+                log += `   ✗ ${test.name}: Datos requeridos no encontrados\n`;
+            } else {
+                log += `   ⚠ ${test.name}: Datos opcionales no encontrados\n`;
+            }
+        });
+        
+        // Test navigation
+        log += '\n3. VERIFICANDO NAVEGACIÓN...\n';
+        try {
+            if (typeof window.showModule === 'function') {
+                log += '   ✓ Función de navegación disponible\n';
+            } else {
+                log += '   ✗ Función de navegación no encontrada\n';
+            }
+        } catch (e) {
+            log += `   ✗ Error en navegación: ${e.message}\n`;
+        }
+        
+        // Test utilities
+        log += '\n4. VERIFICANDO UTILIDADES...\n';
+        if (window.Utils) {
+            log += '   ✓ Utils disponible\n';
+            if (typeof window.Utils.formatTime === 'function') {
+                log += '   ✓ Formateo de tiempo disponible\n';
+            }
+        } else {
+            log += '   ⚠ Utils no encontrado\n';
+        }
+        
+        log += '\n5. RESUMEN DE LA PRUEBA\n';
+        log += '-'.repeat(30) + '\n';
+        log += `Módulos cargados: ${modules.filter(m => m.obj).length}/4\n`;
+        log += `Conjuntos de datos válidos: ${dataTests.filter(t => t.data && Array.isArray(t.data)).length}/${dataTests.length}\n`;
+        log += `Estado general: ${modules.filter(m => m.obj).length === 4 ? 'ÓPTIMO' : 'NECESITA ATENCIÓN'}\n\n`;
+        log += 'PRUEBA COMPLETA FINALIZADA\n';
+        
+        logEl.textContent = log;
     }
 
     function generateUsersTable() {
@@ -407,21 +767,27 @@ window.AdminModule = (() => {
                 </td>
             </tr>
         `).join('');
-    }
-
-    function generateMenuItems() {
+    }    function generateMenuItems() {
         if (!window.menu) return '<p class="text-center text-gray-500">No hay items en el menú</p>';
         
         return window.menu.map(item => `
             <div class="bg-white rounded-lg shadow p-6">
-                <div class="h-32 bg-gray-200 rounded-lg mb-4 flex items-center justify-center">
-                    <i class="fas fa-utensils text-3xl text-gray-400"></i>
+                <div class="h-32 bg-gray-200 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                    ${item.image ? 
+                        `<img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">` : 
+                        `<i class="fas fa-utensils text-3xl text-gray-400"></i>`
+                    }
                 </div>
                 <h3 class="text-lg font-semibold text-gray-800 mb-2">${item.name}</h3>
                 <p class="text-gray-600 text-sm mb-3">${item.description}</p>
                 <div class="flex justify-between items-center mb-4">
                     <span class="text-xl font-bold text-green-600">S/ ${item.price.toFixed(2)}</span>
-                    <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">${item.category}</span>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">${item.category}</span>
+                        <span class="px-2 py-1 ${item.available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} text-xs rounded">
+                            ${item.available ? 'Disponible' : 'No disponible'}
+                        </span>
+                    </div>
                 </div>
                 <div class="flex space-x-2">
                     <button onclick="AdminModule.editMenuItem(${item.id})" 
@@ -817,8 +1183,7 @@ window.AdminModule = (() => {
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Plato</label>
                         <input type="text" id="menu-name" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                    </div>
-                    <div>
+                    </div>                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                         <textarea id="menu-description" required class="w-full border border-gray-300 rounded-md px-3 py-2 h-20"></textarea>
                     </div>
@@ -827,13 +1192,17 @@ window.AdminModule = (() => {
                         <input type="number" id="menu-price" step="0.01" required class="w-full border border-gray-300 rounded-md px-3 py-2">
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">URL de Imagen</label>
+                        <input type="url" id="menu-image" placeholder="https://ejemplo.com/imagen.jpg" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                         <select id="menu-category" required class="w-full border border-gray-300 rounded-md px-3 py-2">
                             <option value="">Seleccionar categoría...</option>
-                            <option value="Pollo">Pollo</option>
-                            <option value="Acompañamientos">Acompañamientos</option>
-                            <option value="Bebidas">Bebidas</option>
-                            <option value="Postres">Postres</option>
+                            <option value="pollos">Pollos</option>
+                            <option value="platos">Platos</option>
+                            <option value="bebidas">Bebidas</option>
+                            <option value="postres">Postres</option>
                         </select>
                     </div>
                     <div class="flex items-center">
@@ -851,9 +1220,7 @@ window.AdminModule = (() => {
                     </div>
                 </form>
             </div>
-        `;
-
-        document.body.appendChild(modal);
+        `;        document.body.appendChild(modal);
 
         // Bind form submission
         document.getElementById('menu-form').addEventListener('submit', (e) => {
@@ -863,6 +1230,7 @@ window.AdminModule = (() => {
                 description: document.getElementById('menu-description').value,
                 price: parseFloat(document.getElementById('menu-price').value),
                 category: document.getElementById('menu-category').value,
+                image: document.getElementById('menu-image').value || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400',
                 available: document.getElementById('menu-available').checked
             };
             createMenuItem(formData);
@@ -874,9 +1242,7 @@ window.AdminModule = (() => {
         if (modal) {
             modal.remove();
         }
-    }
-
-    function createMenuItem(itemData) {
+    }    function createMenuItem(itemData) {
         if (!window.menu) window.menu = [];
 
         const newItem = {
@@ -885,7 +1251,8 @@ window.AdminModule = (() => {
             description: itemData.description,
             price: itemData.price,
             category: itemData.category,
-            available: itemData.available,
+            image: itemData.image || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400',
+            available: itemData.available !== false, // Default to true if not specified
             createdAt: new Date().toISOString()
         };
 
@@ -916,8 +1283,7 @@ window.AdminModule = (() => {
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nombre del Plato</label>
                         <input type="text" id="menu-name" value="${item.name}" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                    </div>
-                    <div>
+                    </div>                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
                         <textarea id="menu-description" required class="w-full border border-gray-300 rounded-md px-3 py-2 h-20">${item.description}</textarea>
                     </div>
@@ -926,12 +1292,16 @@ window.AdminModule = (() => {
                         <input type="number" id="menu-price" value="${item.price}" step="0.01" required class="w-full border border-gray-300 rounded-md px-3 py-2">
                     </div>
                     <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">URL de Imagen</label>
+                        <input type="url" id="menu-image" value="${item.image || ''}" placeholder="https://ejemplo.com/imagen.jpg" class="w-full border border-gray-300 rounded-md px-3 py-2">
+                    </div>
+                    <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                         <select id="menu-category" required class="w-full border border-gray-300 rounded-md px-3 py-2">
-                            <option value="Pollo" ${item.category === 'Pollo' ? 'selected' : ''}>Pollo</option>
-                            <option value="Acompañamientos" ${item.category === 'Acompañamientos' ? 'selected' : ''}>Acompañamientos</option>
-                            <option value="Bebidas" ${item.category === 'Bebidas' ? 'selected' : ''}>Bebidas</option>
-                            <option value="Postres" ${item.category === 'Postres' ? 'selected' : ''}>Postres</option>
+                            <option value="pollos" ${item.category === 'pollos' ? 'selected' : ''}>Pollos</option>
+                            <option value="platos" ${item.category === 'platos' ? 'selected' : ''}>Platos</option>
+                            <option value="bebidas" ${item.category === 'bebidas' ? 'selected' : ''}>Bebidas</option>
+                            <option value="postres" ${item.category === 'postres' ? 'selected' : ''}>Postres</option>
                         </select>
                     </div>
                     <div class="flex items-center">
@@ -958,15 +1328,14 @@ window.AdminModule = (() => {
             e.preventDefault();
             updateMenuItem();
         });
-    }
-
-    function updateMenuItem() {
+    }    function updateMenuItem() {
         if (!editingMenuItem) return;
 
         editingMenuItem.name = document.getElementById('menu-name').value;
         editingMenuItem.description = document.getElementById('menu-description').value;
         editingMenuItem.price = parseFloat(document.getElementById('menu-price').value);
         editingMenuItem.category = document.getElementById('menu-category').value;
+        editingMenuItem.image = document.getElementById('menu-image').value || 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400';
         editingMenuItem.available = document.getElementById('menu-available').checked;
         editingMenuItem.updatedAt = new Date().toISOString();
 
@@ -994,15 +1363,14 @@ window.AdminModule = (() => {
                 showView('menu');
             }
         }
-    }
-
-    function bindEventListeners(viewId) {
+    }    function bindEventListeners(viewId) {
         // Additional event listeners can be added here if needed
     }
 
     // Public API
     return {
         showView,
+        loadView: showView, // Alias for compatibility with app.js
         showCreateUserModal,
         hideUserModal,
         editUser,
@@ -1013,6 +1381,12 @@ window.AdminModule = (() => {
         showCreateMenuItemModal,
         hideMenuModal,
         editMenuItem,
-        deleteMenuItem
+        deleteMenuItem,
+        // Diagnostic functions
+        runAuthTests,
+        runMenuTests,
+        runTableTests,
+        runOrderTests,
+        runCompleteSystemTest
     };
 })();

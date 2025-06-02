@@ -1,21 +1,13 @@
 // This file handles authentication logic, including user login and role management.
 
-const authModule = (() => {
-    // State management
+const authModule = (() => {    // State management
     let currentUser = null;
     let currentRole = null;
 
-    // Simulated user data for demonstration (this would come from backend in production)
-    const users = [
-        { id: 1, username: 'admin', password: 'admin123', role: 'admin', name: 'Administrador Principal' },
-        { id: 2, username: 'cashier', password: 'cashier123', role: 'cashier', name: 'Cajero Principal' },
-        { id: 3, username: 'kitchen', password: 'kitchen123', role: 'kitchen', name: 'Chef Principal' },
-        { id: 4, username: 'waiter', password: 'waiter123', role: 'waiter', name: 'Mesero Principal' },
-        { id: 5, username: 'juan.perez', password: '123456', role: 'waiter', name: 'Juan Pérez' },
-        { id: 6, username: 'maria.garcia', password: '123456', role: 'kitchen', name: 'María García' },
-        { id: 7, username: 'carlos.lopez', password: '123456', role: 'cashier', name: 'Carlos López' },
-        { id: 8, username: 'ana.martin', password: '123456', role: 'admin', name: 'Ana Martín' }
-    ];
+    // Get users from global users data
+    function getUsers() {
+        return window.users || [];
+    }
 
     // Initialize auth module
     function init() {
@@ -56,10 +48,9 @@ const authModule = (() => {
     function login(username, password, role) {
         const result = authenticateUser(username, password, role, false);
         return result;
-    }
-
-    // Authenticate user
+    }    // Authenticate user
     function authenticateUser(username, password, role, remember = false) {
+        const users = getUsers();
         const user = users.find(user => 
             user.username === username && 
             user.password === password && 

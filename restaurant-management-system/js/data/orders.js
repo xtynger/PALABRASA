@@ -8,9 +8,14 @@ function initializeTables() {
     for (let i = 1; i <= 12; i++) {
         tables.push({
             id: i,
-            status: 'available', // available, occupied, reserved
+            status: 'available', // available, occupied, cleaning
             currentOrderId: null,
-            waiter: null
+            waiter: null,
+            lastUsed: null,
+            lastCleaned: new Date(),
+            cleanedBy: null,
+            cleaningAttempts: 0,
+            cleaningComments: []
         });
     }
     return tables;
@@ -142,7 +147,15 @@ function updateOrderStatus(orderId, status, additionalData = {}) {
 function updateTableStatusForOrder(order) {
     const table = tables.find(t => t.id === order.table);
     if (table) {
-        if (order.status === 'completed' || order.status === 'cancelled') {
+        if (order.status === 'completed') {
+            // When order is completed, table needs cleaning
+            table.status = 'cleaning';
+            table.currentOrderId = null;
+            table.waiter = null;
+            table.lastUsed = new Date();
+            table.cleaningAttempts = table.cleaningAttempts || 0;
+        } else if (order.status === 'cancelled') {
+            // If cancelled, make table available immediately
             table.status = 'available';
             table.currentOrderId = null;
             table.waiter = null;
@@ -197,6 +210,43 @@ function getOccupiedTables() {
     return tables.filter(t => t.status === 'occupied');
 }
 
+function getTablesNeedingCleaning() {
+    return tables.filter(t => t.status === 'cleaning');
+}
+
+function markTableCleaned(tableId, cleanedBy = null) {
+    const table = tables.find(t => t.id === tableId);
+    if (table && table.status === 'cleaning') {
+        table.status = 'available';
+        table.lastCleaned = new Date();
+        table.cleanedBy = cleanedBy;
+        table.cleaningAttempts = 0;
+        saveTables(tables);
+        window.dispatchEvent(new CustomEvent('tablesUpdated', { detail: tables }));
+        return true;
+    }
+    return false;
+}
+
+function recordCleaningAttempt(tableId, comment = null) {
+    const table = tables.find(t => t.id === tableId);
+    if (table && table.status === 'cleaning') {
+        table.cleaningAttempts = (table.cleaningAttempts || 0) + 1;
+        table.lastCleaningAttempt = new Date();
+        if (comment) {
+            table.cleaningComments = table.cleaningComments || [];
+            table.cleaningComments.push({
+                timestamp: new Date(),
+                comment: comment
+            });
+        }
+        saveTables(tables);
+        window.dispatchEvent(new CustomEvent('tablesUpdated', { detail: tables }));
+        return table.cleaningAttempts;
+    }
+    return 0;
+}
+
 // Make functions available globally
 window.addOrder = addOrder;
 window.getOrders = getOrders;
@@ -208,6 +258,9 @@ window.getTables = getTables;
 window.updateTableStatus = updateTableStatus;
 window.getAvailableTables = getAvailableTables;
 window.getOccupiedTables = getOccupiedTables;
+window.getTablesNeedingCleaning = getTablesNeedingCleaning;
+window.markTableCleaned = markTableCleaned;
+window.recordCleaningAttempt = recordCleaningAttempt;
 
 // Initialize ordersData for compatibility
 window.ordersData = orders;
